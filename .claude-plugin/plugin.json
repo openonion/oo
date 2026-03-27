@@ -1,0 +1,13 @@
+{
+  "name": "connectonion",
+  "description": "Connect AI coding agents to remote ConnectOnion agents for task delegation and multi-agent collaboration",
+  "version": "0.1.0",
+  "author": {
+    "name": "OpenOnion",
+    "email": "hello@openonion.ai"
+  },
+  "homepage": "https://github.com/openonion/oo",
+  "repository": "https://github.com/openonion/oo",
+  "license": "MIT",
+  "keywords": ["connectonion", "agent", "networking", "multi-agent", "connect", "delegate"]
+}
