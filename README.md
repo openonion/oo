@@ -1,14 +1,31 @@
 # 🧅 oo
 
-[oo Agent Skill](https://github.com/openonion/oo) | [ConnectOnion Official](https://github.com/openonion/connectonion) | [Production Ready](https://github.com/openonion/connectonion) | [Python 3.10+](https://python.org) | [License: MIT](https://opensource.org/licenses/MIT)
+<div align="center">
 
-[Claude Code](https://claude.ai/code) | [Codex CLI](https://github.com/openai/codex) | [Cursor](https://cursor.com) | [Kiro](https://kiro.dev) | [VSCode Copilot](https://code.visualstudio.com)
+<img src="https://raw.githubusercontent.com/wu-changxing/openonion-assets/master/imgs/ConnectOnion.png" alt="ConnectOnion" width="300">
 
-[GitHub stars](https://github.com/openonion/connectonion) | [PyPI Downloads](https://pepy.tech/projects/connectonion) | [Discord](https://discord.gg/4xfD9k8AUF) | [Documentation](http://docs.connectonion.com)
+[![oo Agent Skill](https://img.shields.io/badge/oo-Agent_Networking_Skill-00C853?style=flat-square)](https://github.com/openonion/oo)
+[![ConnectOnion Official](https://img.shields.io/badge/ConnectOnion-Official_Companion-FF6D00?style=flat-square)](https://github.com/openonion/connectonion)
+[![Production Ready](https://img.shields.io/badge/Status-Production_Ready-success?style=flat-square)](https://github.com/openonion/connectonion)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+
+[![Claude Code](https://img.shields.io/badge/Claude_Code-black?style=flat-square&logo=anthropic&logoColor=white)](https://claude.ai/code)
+[![Codex CLI](https://img.shields.io/badge/Codex_CLI-412991?style=flat-square&logo=openai&logoColor=white)](https://github.com/openai/codex)
+[![Cursor](https://img.shields.io/badge/Cursor-000000?style=flat-square&logo=cursor&logoColor=white)](https://cursor.com)
+[![Kiro](https://img.shields.io/badge/Kiro-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white)](https://kiro.dev)
+[![VSCode Copilot](https://img.shields.io/badge/VSCode_Copilot-007ACC?style=flat-square&logo=visualstudiocode&logoColor=white)](https://code.visualstudio.com)
+
+[![GitHub stars](https://img.shields.io/github/stars/openonion/connectonion?style=flat-square&label=connectonion&color=orange)](https://github.com/openonion/connectonion)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/connectonion?period=total&units=international_system&left_color=black&right_color=green&left_text=downloads)](https://pepy.tech/projects/connectonion)
+[![Discord](https://img.shields.io/badge/Discord-Join-7289DA?style=flat-square&logo=discord)](https://discord.gg/4xfD9k8AUF)
+[![Documentation](https://img.shields.io/badge/Docs-docs.connectonion.com-blue?style=flat-square)](http://docs.connectonion.com)
 
 **The agent networking skill for [ConnectOnion](https://github.com/openonion/connectonion) — connect your AI coding agent to any remote agent**
 
 [📚 Documentation](http://docs.connectonion.com) • [💬 Discord](https://discord.gg/4xfD9k8AUF) • [⭐ Star ConnectOnion](https://github.com/openonion/connectonion) • [🧅 Chat UI](https://chat.openonion.ai)
+
+</div>
 
 ---
 
@@ -162,6 +179,12 @@ README.md
 
 ## 🧅 About ConnectOnion
 
+<div align="center">
+
+<a href="https://github.com/openonion/connectonion"><img src="https://raw.githubusercontent.com/wu-changxing/openonion-assets/master/imgs/logo.png" alt="ConnectOnion Logo" width="80"></a>
+
+</div>
+
 [ConnectOnion](https://github.com/openonion/connectonion) is an open-source framework for building production-ready AI agents with built-in multi-agent networking.
 
 > **"Keep simple things simple, make complicated things possible."**
@@ -191,8 +214,14 @@ MIT License — use it anywhere, even commercially. See [LICENSE](LICENSE) file 
 
 ---
 
-[Discord](https://discord.gg/4xfD9k8AUF) | [GitHub](https://github.com/openonion/connectonion) | [Documentation](http://docs.connectonion.com)
+<div align="center">
+
+[![Discord](https://img.shields.io/badge/Discord-Join_Community-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/4xfD9k8AUF)
+[![GitHub](https://img.shields.io/badge/GitHub-Star_ConnectOnion-black?style=for-the-badge&logo=github)](https://github.com/openonion/connectonion)
+[![Documentation](https://img.shields.io/badge/Docs-Learn_More-blue?style=for-the-badge)](http://docs.connectonion.com)
 
 **Built with 🧅 by the [OpenOnion](https://github.com/openonion) community**
 
 [⭐ Star ConnectOnion](https://github.com/openonion/connectonion) • [💬 Join Discord](https://discord.gg/4xfD9k8AUF) • [📖 Read Docs](http://docs.connectonion.com) • [⬆ Back to top](#-oo)
+
+</div>
