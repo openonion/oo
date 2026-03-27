@@ -1,5 +1,5 @@
 {
-  "name": "connectonion-skill",
+  "name": "connectonion-skills",
   "description": "ConnectOnion agent networking skills",
   "owner": {
     "name": "OpenOnion",
@@ -7,7 +7,7 @@
   },
   "plugins": [
     {
-      "name": "connectonion",
+      "name": "oo",
       "description": "Connect AI coding agents to remote ConnectOnion agents for task delegation and multi-agent collaboration",
       "version": "0.1.0",
       "source": "./",

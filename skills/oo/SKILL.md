@@ -1,6 +1,7 @@
 ---
 name: oo
 description: Use when user mentions a ConnectOnion agent address (0x...), asks to connect/delegate to a remote agent, or uses /oo command. Also triggers when user wants to set up ConnectOnion environment for agent networking.
+argument-hint: <0xAddress> <task description>
 ---
 
 # ConnectOnion Agent Networking
@@ -86,7 +87,7 @@ def discover_direct_ws(target, relay_url):
     """Query relay API for endpoints and find a working direct WebSocket."""
     https_relay = relay_url.replace("wss://", "https://").replace("ws://", "http://").rstrip("/")
     try:
-        resp = httpx.get(f"{https_relay}/api/relay/agents/{target}", proxy="http://127.0.0.1:2334", timeout=5)
+        resp = httpx.get(f"{https_relay}/api/relay/agents/{target}", timeout=5)
         if resp.status_code != 200:
             return None
         info = resp.json()

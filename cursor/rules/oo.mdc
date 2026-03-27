@@ -1,6 +1,5 @@
 ---
 description: Use when user mentions a ConnectOnion agent address (0x...), asks to connect/delegate to a remote agent, or uses /oo command.
-globs:
 alwaysApply: false
 ---
 
