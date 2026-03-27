@@ -49,6 +49,18 @@ Agent: Connecting to remote agent...
 
 ### Installation
 
+**[OpenClaw](https://clawhub.ai/openonion/oo) (recommended):**
+
+```bash
+# Install via ClawHub
+clawhub install oo
+
+# Or manual install
+mkdir -p ~/.openclaw/skills/oo
+curl -o ~/.openclaw/skills/oo/SKILL.md \
+  https://raw.githubusercontent.com/openonion/oo/main/skills/oo/SKILL.md
+```
+
 **Claude Code (Manual — recommended):**
 
 ```bash
