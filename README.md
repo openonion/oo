@@ -61,6 +61,12 @@ curl -o ~/.openclaw/skills/oo/SKILL.md \
   https://raw.githubusercontent.com/openonion/oo/main/skills/oo/SKILL.md
 ```
 
+**Skills CLI:**
+
+```bash
+npx skills add openonion/oo
+```
+
 **Claude Code (Manual — recommended):**
 
 ```bash
