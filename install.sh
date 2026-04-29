@@ -25,12 +25,13 @@ skip()   { printf '  \033[2m·\033[0m %s\n' "$1"; }
 
 # ----- targets: platform | source-in-repo | install-path-under-$HOME -------
 # Each line: <label>|<repo-relative-source>|<HOME-relative-destination>
+# Claude Code's slash command is provided by the skill itself (frontmatter
+# `name: oo` exposes /oo), so we do not link commands/oo.md separately.
 TARGETS='
-Claude Code skill|skills/oo|.claude/skills/oo
-Claude Code command|commands/oo.md|.claude/commands/oo.md
+Claude Code|skills/oo|.claude/skills/oo
 Codex CLI|codex/oo|.codex/skills/oo
-Cursor rule|cursor/rules/oo.mdc|.cursor/rules/oo.mdc
-Kiro steering|kiro/steering/oo.md|.kiro/steering/oo.md
+Cursor|cursor/rules/oo.mdc|.cursor/rules/oo.mdc
+Kiro|kiro/steering/oo.md|.kiro/steering/oo.md
 '
 
 uninstall() {
