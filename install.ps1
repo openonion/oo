@@ -98,6 +98,41 @@ foreach ($t in $Targets) {
   Write-Ok "$($t.Label)  ->  ~\$($t.Dst)"
 }
 
+# ----- install the connectonion python package ---------------------------
+Write-Host ''
+Write-Host 'Setting up Python deps:'
+
+$py = $null
+foreach ($cmd in 'python', 'py') {
+  if (Get-Command $cmd -ErrorAction SilentlyContinue) { $py = $cmd; break }
+}
+
+if (-not $py) {
+  Write-Skip 'connectonion - python not found, the skill will install it on first /oo'
+} else {
+  & $py -c "import connectonion" 2>$null
+  if ($LASTEXITCODE -eq 0) {
+    # connectonion prints an [env] banner on import; keep only the last line (version).
+    $ver = (& $py -c "import connectonion; print(connectonion.__version__)" 2>$null | Select-Object -Last 1)
+    Write-Ok "connectonion already installed (v$ver)"
+  } else {
+    if ($env:VIRTUAL_ENV) {
+      $pipFlags = @()
+      $target = "venv $env:VIRTUAL_ENV"
+    } else {
+      $pipFlags = @('--user')
+      $target = 'user site'
+    }
+    Write-Host "  installing connectonion into $target..."
+    & $py -m pip install --quiet @pipFlags connectonion
+    if ($LASTEXITCODE -eq 0) {
+      Write-Ok 'connectonion installed'
+    } else {
+      Write-Skip 'pip install failed - the skill will retry on first /oo'
+    }
+  }
+}
+
 Write-Host ''
 Write-Done 'Done. The /oo command is ready in every linked agent.'
 Write-Host ''

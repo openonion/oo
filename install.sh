@@ -93,6 +93,38 @@ echo "$TARGETS" | while IFS='|' read -r label src dst; do
   linked=$((linked + 1))
 done
 
+# ----- install the connectonion python package ----------------------------
+echo
+echo "Setting up Python deps:"
+
+PY=""
+for cmd in python3 python; do
+  if command -v "$cmd" >/dev/null 2>&1; then PY="$cmd"; break; fi
+done
+
+if [ -z "$PY" ]; then
+  skip "connectonion — python not found, the skill will install it on first /oo"
+elif "$PY" -c "import connectonion" >/dev/null 2>&1; then
+  # connectonion prints an [env] banner on import; tail -1 keeps just the version.
+  ver=$("$PY" -c "import connectonion; print(connectonion.__version__)" 2>/dev/null | tail -1)
+  ok "connectonion already installed (v$ver)"
+else
+  # Use venv if active, otherwise --user to avoid touching system site-packages
+  if [ -n "${VIRTUAL_ENV:-}" ]; then
+    pip_flags=""
+    target="venv $VIRTUAL_ENV"
+  else
+    pip_flags="--user"
+    target="user site"
+  fi
+  echo "  installing connectonion into $target..."
+  if "$PY" -m pip install --quiet $pip_flags connectonion; then
+    ok "connectonion installed"
+  else
+    skip "pip install failed — the skill will retry on first /oo"
+  fi
+fi
+
 echo
 green "✓ Done. The /oo command is ready in every linked agent."
 echo
