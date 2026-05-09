@@ -49,66 +49,30 @@ Agent: Connecting to remote agent...
 
 ### Installation
 
-**[OpenClaw](https://clawhub.ai/openonion/oo) (recommended):**
+**One-liner (recommended) — installs into every detected agent:**
 
 ```bash
-# Install via ClawHub
-clawhub install oo
-
-# Or manual install
-mkdir -p ~/.openclaw/skills/oo
-curl -o ~/.openclaw/skills/oo/SKILL.md \
-  https://raw.githubusercontent.com/openonion/oo/main/skills/oo/SKILL.md
+curl -fsSL agent.openonion.ai/install | python3 -
 ```
 
-**Skills CLI:**
+The installer (a single Python script — works on macOS, Linux, Windows) clones this repo to `~/.connectonion/bundles/oo`, then drops the bundled skills into whichever coding agents are present:
 
-```bash
-npx skills add openonion/oo
-```
+- **Claude Code** → `~/.claude/plugins/oo/` (whole bundle as a plugin, auto-namespaced)
+- **Codex CLI / OpenClaw** → `~/.codex/skills/oo-<skill>/` (symlinks per skill)
+- **Cursor** → `~/.cursor/rules/oo-<skill>.mdc` (frontmatter converted)
+- **Kiro** → `~/.kiro/steering/oo-<skill>.md` (plain copies)
 
-**Claude Code (Manual — recommended):**
+To uninstall: `curl -fsSL agent.openonion.ai/install | python3 - --uninstall`
 
-```bash
-mkdir -p ~/.claude/skills/oo
-curl -o ~/.claude/skills/oo/SKILL.md \
-  https://raw.githubusercontent.com/openonion/oo/main/skills/oo/SKILL.md
-```
+**There is no `oo` CLI to install** — everything is a SKILL.md. Your coding agent runs the skill; the skill calls the `connectonion` Python library directly. The bundle ships with five skills:
 
+- **`oo`** — connect to a remote agent and delegate a task (`/oo 0x... <task>`).
+- **`oo-init`** — scaffold a new bundle (`agent.json` + skill dirs).
+- **`oo-publish`** — sign `agent.json` and ANNOUNCE it over the relay.
+- **`oo-subscribe`** — request a follow + mirror a publisher's bundle.
+- **`oo-accept`** — review and accept incoming subscription requests.
 
-**Claude Code (Plugin):**
-
-```bash
-claude plugin marketplace add openonion/oo
-claude plugin install oo
-```
-
-
-**OpenAI Codex CLI:**
-
-```bash
-mkdir -p ~/.codex/skills/oo
-curl -o ~/.codex/skills/oo/SKILL.md \
-  https://raw.githubusercontent.com/openonion/oo/main/codex/oo/SKILL.md
-```
-
-**Cursor:**
-
-```bash
-mkdir -p .cursor/rules
-curl -o .cursor/rules/oo.mdc \
-  https://raw.githubusercontent.com/openonion/oo/main/cursor/rules/oo.mdc
-```
-
-**Kiro:**
-
-```bash
-mkdir -p .kiro/steering
-curl -o .kiro/steering/oo.md \
-  https://raw.githubusercontent.com/openonion/oo/main/kiro/steering/oo.md
-```
-
-**Manual (any platform):** Copy `skills/oo/SKILL.md` to your agent's skill directory.
+**Manual install per tool** — if you'd rather not run the installer, copy `skills/<name>/SKILL.md` directly into your agent's skill directory. Claude Code, Codex, and OpenClaw all read the canonical SKILL.md format. Cursor and Kiro need format conversion — see `install.py` for the exact transformation.
 
 ## 💬 Usage
 
@@ -174,26 +138,23 @@ When the remote agent asks a follow-up question, the skill handles it intelligen
 ## 📁 Project Structure
 
 ```
-.claude-plugin/
-  plugin.json              # Plugin metadata
-  marketplace.json         # Marketplace listing
 skills/
-  oo/
-    SKILL.md               # Claude Code skill
-codex/
-  oo/
-    SKILL.md               # Codex CLI skill
-cursor/
-  rules/
-    oo.mdc                 # Cursor rule
-kiro/
-  steering/
-    oo.md                  # Kiro steering file
+  oo/SKILL.md              # Connect/delegate to a remote agent (/oo …)
+  oo-init/SKILL.md         # Scaffold a new bundle (mkdir + agent.json)
+  oo-publish/SKILL.md      # Sign agent.json, ANNOUNCE over relay, upload skills
+  oo-subscribe/SKILL.md    # SUBSCRIBE to a publisher, mirror to ~/.co/subs/<alias>/
+  oo-accept/SKILL.md       # Review + accept incoming subscription requests
 commands/
   oo.md                    # /oo command alias
+.claude-plugin/            # Claude Code plugin manifest (auto-namespaces installs)
+lib/fanout.py              # Per-tool install helpers (shared by install.py + oo-subscribe)
+install.py                 # Cross-platform bootstrap: clones repo + symlinks into every detected agent
+agent.json                 # Canonical oo bundle profile (signed by the openonion address)
 LICENSE
 README.md
 ```
+
+Distribution is **relay-based pub/sub**, not git. Publishers sign `agent.json` and ANNOUNCE it to `oo.openonion.ai`; subscribers send a signed SUBSCRIBE, wait for accept, then pull the profile + each `SKILL.md` body from the relay into `~/.co/subs/<alias>/`. `install.py` only handles the bootstrap — getting the canonical `oo` skills onto a fresh machine before any of those skills exist. After that, the four publishing/subscribing skills do everything else; Claude Code, Codex, OpenClaw, Cursor, and Kiro all share the same canonical `SKILL.md` source via `lib/fanout.py`.
 
 ## 🧅 About ConnectOnion
 
