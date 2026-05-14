@@ -52,17 +52,20 @@ Agent: Connecting to remote agent...
 **One-liner (recommended) — installs into every detected agent:**
 
 ```bash
-curl -fsSL agent.openonion.ai/install | python3 -
+curl -fsSL agent.openonion.ai/install | sh
 ```
 
-The installer (a single Python script — works on macOS, Linux, Windows) clones this repo to `~/.connectonion/bundles/oo`, then drops the bundled skills into whichever coding agents are present:
+(Or pipe to `python3 -` if you'd rather skip the shell shim and run `install.py` directly. Works on macOS, Linux, Windows — needs `python3` + `git`.)
+
+The installer clones this repo to `~/.connectonion/bundles/oo`, then drops the bundled skills into whichever coding agents are present:
 
 - **Claude Code** → `~/.claude/plugins/oo/` (whole bundle as a plugin, auto-namespaced)
-- **Codex CLI / OpenClaw** → `~/.codex/skills/oo-<skill>/` (symlinks per skill)
+- **Codex CLI** → `~/.codex/skills/oo-<skill>/` (symlinks per skill)
+- **OpenClaw** → `~/.openclaw/skills/oo-<skill>/` (symlinks per skill)
 - **Cursor** → `~/.cursor/rules/oo-<skill>.mdc` (frontmatter converted)
 - **Kiro** → `~/.kiro/steering/oo-<skill>.md` (plain copies)
 
-To uninstall: `curl -fsSL agent.openonion.ai/install | python3 - --uninstall`
+To uninstall: `curl -fsSL agent.openonion.ai/install | sh -s -- --uninstall`
 
 **There is no `oo` CLI to install** — everything is a SKILL.md. Your coding agent runs the skill; the skill calls the `connectonion` Python library directly. The bundle ships with five skills:
 
