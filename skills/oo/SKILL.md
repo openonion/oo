@@ -1,10 +1,42 @@
 ---
 name: oo
-description: Use when user mentions a ConnectOnion agent address (0x...), asks to connect/delegate to a remote agent, or uses /oo command. Also triggers when user wants to set up ConnectOnion environment for agent networking.
-argument-hint: <0xAddress> <task description>
+description: Entry point for anything `oo` / ConnectOnion related. Use when the user says "oo", uses /oo, mentions a 0x... address, or expresses intent that could be init / publish / subscribe / accept / connect without naming the specific action. Routes to the right sub-skill.
+argument-hint: [0xAddress <task>] | [init|publish|subscribe|accept]
 ---
 
-# ConnectOnion Agent Networking
+# `oo` Orchestrator
+
+This skill is the front door for everything `oo`. Its job is to detect what the user wants and either **route to the right sub-skill** or **handle the connect flow inline**.
+
+## Step 1 — Detect intent
+
+Read the user's message and classify into ONE of:
+
+| Intent | Signals | Action |
+|--------|---------|--------|
+| **connect** | message contains `0x[0-9a-fA-F]{64}`, or words like "connect", "delegate", "ask agent", "send to agent" | Continue with the Connect flow below |
+| **init** | "init", "set up oo", "scaffold", "create agent.json", "make me publishable", "start a new bundle" | Invoke the `oo-init` skill via the Skill tool |
+| **publish** | "publish", "ship", "share my agent", "release my skills", "announce my agent" | Invoke `oo-publish` |
+| **subscribe** | "subscribe", "follow", "install <name>'s skills", "add 0x... as a subscription" | Invoke `oo-subscribe` |
+| **accept** | "accept subscribers", "review subscription requests", "who's following me", "approve subscriptions" | Invoke `oo-accept` |
+| **ambiguous** | bare `/oo`, "oo", "help me with oo", or anything that fits >1 bucket | Go to Step 2 |
+
+If the intent is clear, route immediately. Don't ask.
+
+## Step 2 — Ask when ambiguous
+
+If you cannot confidently classify, ask the user **once** with AskUserQuestion. Tailor the options based on whether they already have an identity:
+
+- If `~/.co/agent.json` does not exist → likely **init** is needed first; offer init / subscribe / connect.
+- If it does exist → offer publish / subscribe / accept / connect.
+
+Then invoke the chosen sub-skill. Never proceed past Step 2 without a clear intent.
+
+---
+
+# Connect flow (inline)
+
+The rest of this file handles the **connect** intent only. Everything else is delegated to its own skill.
 
 Connect to remote ConnectOnion agents, delegate tasks, and handle multi-turn collaboration.
 
