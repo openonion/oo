@@ -1,57 +1,29 @@
 #!/bin/sh
-# oo — one-line installer for the ConnectOnion agent networking skill
-# https://github.com/openonion/oo
+# oo — shell entry point for the ConnectOnion agent networking bundle.
 #
-#   Install:    curl -fsSL openonion.ai/install | sh
-#   Update:     re-run the same command
-#   Uninstall:  curl -fsSL openonion.ai/install | sh -s uninstall
+# Thin shim: clones the repo into ~/.connectonion/bundles/oo and hands off
+# to install.py, which is the canonical installer. All install logic lives
+# in install.py so the shell and python entry points stay in sync.
+#
+#   Install:    curl -fsSL agent.openonion.ai/install | sh
+#   Uninstall:  curl -fsSL agent.openonion.ai/install | sh -s -- --uninstall
 #   Local dev:  OO_SOURCE_DIR=/path/to/repo sh install.sh
-#
-# Clones github.com/openonion/oo and links the skill into every coding
-# agent we know about: Claude Code, Codex CLI, Cursor, Kiro. Installs
-# only for agents you actually have (detected via their config dirs).
 
 set -eu
 
 REPO="${OO_REPO:-openonion/oo}"
 BRANCH="${OO_BRANCH:-main}"
 SOURCE_DIR="${OO_SOURCE_DIR:-}"
-CACHE_DIR="$HOME/.oo/cache"
+CACHE_DIR="$HOME/.connectonion/bundles/oo"
 
-green()  { printf '\033[32m%s\033[0m\n' "$1"; }
-red()    { printf '\033[31m%s\033[0m\n' "$1" >&2; }
-ok()     { printf '  \033[32m✓\033[0m %s\n' "$1"; }
-skip()   { printf '  \033[2m·\033[0m %s\n' "$1"; }
+red() { printf '\033[31m%s\033[0m\n' "$1" >&2; }
 
-# ----- targets: platform | source-in-repo | install-path-under-$HOME -------
-# Each line: <label>|<repo-relative-source>|<HOME-relative-destination>
-# Claude Code's slash command is provided by the skill itself (frontmatter
-# `name: oo` exposes /oo), so we do not link commands/oo.md separately.
-TARGETS='
-Claude Code|skills/oo|.claude/skills/oo
-Codex CLI|codex/oo|.codex/skills/oo
-Cursor|cursor/rules/oo.mdc|.cursor/rules/oo.mdc
-Kiro|kiro/steering/oo.md|.kiro/steering/oo.md
-'
+PY=""
+for cmd in python3 python; do
+  if command -v "$cmd" >/dev/null 2>&1; then PY="$cmd"; break; fi
+done
+[ -n "$PY" ] || { red "python3 is required but not installed"; exit 1; }
 
-uninstall() {
-  echo "Uninstalling oo..."
-  echo "$TARGETS" | while IFS='|' read -r label src dst; do
-    [ -z "$label" ] && continue
-    full="$HOME/$dst"
-    if [ -L "$full" ]; then
-      rm "$full"
-      ok "removed $label  ($full)"
-    fi
-  done
-  rm -rf "$CACHE_DIR"
-  green "✓ Uninstalled"
-  exit 0
-}
-
-[ "${1:-}" = "uninstall" ] && uninstall
-
-# ----- fetch the repo -----------------------------------------------------
 mkdir -p "$(dirname "$CACHE_DIR")"
 
 if [ -n "$SOURCE_DIR" ]; then
@@ -72,61 +44,4 @@ else
   fi
 fi
 
-# ----- link into every supported agent ------------------------------------
-echo
-echo "Linking into supported coding agents:"
-linked=0
-echo "$TARGETS" | while IFS='|' read -r label src dst; do
-  [ -z "$label" ] && continue
-  src_path="$CACHE_DIR/$src"
-  dst_path="$HOME/$dst"
-
-  if [ ! -e "$src_path" ]; then
-    skip "$label — source $src missing in repo"
-    continue
-  fi
-
-  mkdir -p "$(dirname "$dst_path")"
-  rm -rf "$dst_path"
-  ln -s "$src_path" "$dst_path"
-  ok "$label  ->  ~/${dst}"
-  linked=$((linked + 1))
-done
-
-# ----- install the connectonion python package ----------------------------
-echo
-echo "Setting up Python deps:"
-
-PY=""
-for cmd in python3 python; do
-  if command -v "$cmd" >/dev/null 2>&1; then PY="$cmd"; break; fi
-done
-
-if [ -z "$PY" ]; then
-  skip "connectonion — python not found, the skill will install it on first /oo"
-elif "$PY" -c "import connectonion" >/dev/null 2>&1; then
-  # connectonion prints an [env] banner on import; tail -1 keeps just the version.
-  ver=$("$PY" -c "import connectonion; print(connectonion.__version__)" 2>/dev/null | tail -1)
-  ok "connectonion already installed (v$ver)"
-else
-  # Use venv if active, otherwise --user to avoid touching system site-packages
-  if [ -n "${VIRTUAL_ENV:-}" ]; then
-    pip_flags=""
-    target="venv $VIRTUAL_ENV"
-  else
-    pip_flags="--user"
-    target="user site"
-  fi
-  echo "  installing connectonion into $target..."
-  if "$PY" -m pip install --quiet $pip_flags connectonion; then
-    ok "connectonion installed"
-  else
-    skip "pip install failed — the skill will retry on first /oo"
-  fi
-fi
-
-echo
-green "✓ Done. The /oo command is ready in every linked agent."
-echo
-echo "Try in Claude Code:"
-echo "  /oo 0x<address> <task>"
+exec "$PY" "$CACHE_DIR/install.py" "$@"
