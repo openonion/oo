@@ -6,14 +6,12 @@ allowed-tools: Bash, Read, Edit
 
 # Publish over the relay
 
-Run `co announce`. That's it. The CLI reads `~/.co/agent.json`, signs it
-with `~/.co/keys/agent.key`, and pushes to the relay over WebSocket.
+Curate `~/.co/agent.json` and run one command. The relay receives a signed
+ANNOUNCE that carries the alias, bio, and every skill marked
+`publish: true` (with its full `SKILL.md` body inlined). Skills marked
+`publish: false` (or missing the flag) never leave the machine.
 
-Every skill in the library defaults to **private** (`publish: false`).
-A first announce therefore publishes only the profile **metadata** — alias,
-bio, version, address — plus the names+descriptions of any skills the user
-has explicitly opted in. Skill *bodies* (`SKILL.md` contents) never leave
-the machine unless `publish: true` is set on that skill.
+You orchestrate; `co announce` does the crypto and networking.
 
 ## Prerequisites
 
@@ -24,38 +22,53 @@ co announce --help >/dev/null \
   || { echo "MISSING: pip install -U connectonion"; exit 1; }
 ```
 
-## Phase A — Show + confirm
+## Phase A — Surface current state
+
+Read `~/.co/agent.json`. Tell the user:
+
+- Alias and bio (flag if bio still says "Edit ~/.co/agent.json to customize.").
+- How many skills are in the library, and how many are already `publish: true`.
 
 ```bash
 cat ~/.co/agent.json
 ```
 
-Tell the user, in plain language:
+If the bio is a placeholder, block until the user supplies a real one — a
+vague bio is the most common reason a profile gets ignored.
 
-> "I'm about to publish your profile metadata — alias, bio, version, and
-> address — to the relay so others can discover you. Your skills stay
-> **private by default**: only their names and descriptions go out, never
-> the actual `SKILL.md` contents. Continue? [Y/n]"
+## Phase B — Pick what to publish
 
-If the bio is still the default placeholder
-(`Edit ~/.co/agent.json to customize.`), block until they give a real one —
-a vague bio is the most common reason a profile gets ignored.
+Group `agent.json.skills` by purpose (writing / shipping / social / reviewers)
+and ask the user which clusters to publish. First-time profiles should be
+5–15 curated items, not the whole library.
 
-## Phase B — Announce
+`~/.co/agent.json` is a plain JSON file. Use the `Edit` tool (or `$EDITOR`)
+to flip `"publish": false` → `"publish": true` on the chosen entries and
+leave the rest alone. No script needed — it's a one-character edit per
+skill, and keeping it manual means the user sees exactly what's going out.
+
+## Phase C — Dry-run, then announce
+
+`co announce --dry-run` is the validator. It reads `~/.co/agent.json`,
+inlines every `publish: true` SKILL.md, signs the payload, and prints what
+*would* be sent — without sending. If a description is missing or a
+`SKILL.md` is gone, it surfaces there. Run it, scan the list, then send:
 
 ```bash
-co announce
+co announce --dry-run    # inspect the signed payload + skill list
+co announce              # send it
 ```
 
-`co announce` filters skills to `publish: true`, inlines those bodies,
-signs the whole message with the Ed25519 key at `~/.co/keys/agent.key`,
-and sends it to `wss://oo.openonion.ai/ws/announce`. It prints the alias,
-address, and the names of any skills whose bodies were included.
+`co announce` does:
 
-Use `co announce --dry-run` first if the user wants to inspect the signed
-payload before sending.
+- Reads `~/.co/agent.json`.
+- Filters skills to `publish: true`, inlines each `SKILL.md` body.
+- Builds `{alias, bio, version, skills:[{name, description, body}]}` and signs
+  the whole ANNOUNCE with the Ed25519 key at `~/.co/keys/agent.key`.
+- WebSocket → `wss://oo.openonion.ai/ws/announce`. Relay verifies the signature
+  and persists the profile + bodies to its database.
 
-## Phase C — Confirm + next step
+## Phase D — Confirm
 
 ```
 ✓ Published <alias> (<address>).
@@ -64,20 +77,25 @@ Friends can subscribe with the oo-subscribe skill:
   "subscribe to <alias>"   or   "subscribe to <0xaddress>"
 ```
 
-If the user later wants to share specific skill bodies (not just names),
-they edit `~/.co/agent.json` and set `publish: true` on those entries,
-then re-run this skill.
-
 ## Updates
 
-Bump `version` in `~/.co/agent.json` for meaningful changes, then run
-`co announce` again. Each announce overwrites the relay-side profile.
+To re-publish after editing skills or the bio: bump `version` in
+`~/.co/agent.json` for meaningful changes, then run `co announce` again.
+Each announce overwrites the relay-side profile.
 
 ## Anti-patterns
 
-- **Don't reimplement `co announce` in bash or python.** No `mktemp`, no
-  manual signing, no direct WebSocket calls. The CLI is the source of truth.
-- **Don't auto-flip `publish: true` on the user's skills.** Private-by-default
-  is the contract. Opting in is the user's call, not the skill's.
-- **Don't `mkdir bundle/`.** There is no bundle directory. `~/.co/` is it.
-- **Don't `gh pr create`.** Publishing is relay pub/sub, not a PR flow.
+- **Don't `mkdir bundle/`, `mktemp`, or write a publish dir.** There is no
+  bundle directory. `~/.co/` is the source of truth; `co announce` reads
+  bodies from `~/.co/skills/<name>/SKILL.md` directly.
+- **Don't sign in bash.** `co announce` signs once over the whole message.
+  Don't add a second signature on a per-body basis.
+- **Don't `gh pr create`.** Publishing is relay-based pub/sub, not a PR flow.
+- **Don't modify `~/.co/skills/` to curate.** Curation lives in
+  `agent.json.skills[].publish`. The library stays intact.
+- **Don't publish every skill on first run.** 5–15 carefully chosen items
+  beats 30 random ones.
+- **Don't wrap `agent.json` edits in a python script.** It's a plain JSON
+  file; the user (or the `Edit` tool) flips `publish` flags directly.
+  `co announce --dry-run` does the validation — don't re-implement it in
+  bash or python.

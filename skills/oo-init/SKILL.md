@@ -1,117 +1,75 @@
 ---
 name: oo-init
-description: Use when the user wants to start, scaffold, or create a new `oo` agent bundle to publish later. Triggers on phrases like "init my bundle", "scaffold an agent bundle", "start a new oo bundle", "make my Claude/Codex setup publishable", "create agent.json".
-allowed-tools: Bash, Read, Write
+description: Use when the user wants to start, scaffold, or create their `oo` publishable identity. Triggers on phrases like "init my agent", "set up oo", "make my Claude/Codex setup publishable", "create agent.json", "start a new oo bundle".
+allowed-tools: Bash, Read
 ---
 
-# Scaffold a new `oo` bundle
+# Initialize the user's publishable identity
 
-Create the directory layout and `agent.json` template the user needs before
-they can curate skills and run `oo-publish`. **No content curation here** —
-that's `oo-publish`'s job. This skill just gives them an empty house.
+There is **no bundle directory**. The user's `~/.co/` IS the bundle:
+
+```
+~/.co/keys/agent.key      identity
+~/.co/keys.env            managed-key auth
+~/.co/agent.json          publishable profile (alias, bio, version)
+~/.co/skills/             skill library (sources from claude/codex/cursor/kiro)
+~/.co/skills/index.json   discovery cache
+```
+
+All four are created and refreshed by one command: `co setup`. This skill
+just gathers the right inputs and shells out.
 
 ## Prerequisites
 
 ```bash
-python -c "import connectonion; print(connectonion.__version__)"
-ls ~/.co/keys/agent.key
+co setup --help >/dev/null && co skills --help >/dev/null \
+  || { echo "MISSING: pip install -U connectonion"; exit 1; }
 ```
 
-If `connectonion` is missing: `pip install connectonion`.
-If `~/.co/keys/agent.key` is missing: `co init`. Stop until both pass.
+## Phase A — Gather inputs
 
-## Phase A — Pick a name
+Ask the user for **two things** (or infer + confirm):
 
-Default to the user's git/system username (`git config user.name` lowercased,
-or `$USER`). Confirm with the user before creating the directory. Bundle
-names must be lowercase, alphanumeric + hyphens (no spaces, no `:`).
+1. **Alias / name** — default to `git config user.name | tr '[:upper:]' '[:lower:]' | tr -d ' '` or `$USER`. Must be lowercase, alphanumeric + hyphens.
+2. **One-line bio** — push back on placeholders ("my agent"). A vague bio is the most common reason a publication gets ignored.
 
-## Phase B — Scaffold the layout
+Mention but don't block on `co auth` — publishing works without managed-key auth; only the `co/*` models require it.
+
+## Phase B — Run `co setup`
 
 ```bash
-NAME=<bundle-name>
-mkdir -p "$NAME"/{skills,commands,agents,.claude-plugin}
-cd "$NAME"
+co setup --name <alias> --bio "<one-line bio>"
 ```
 
-## Phase C — Write `agent.json` template
+That single command:
+- Bootstraps `~/.co/keys/agent.key` (via `co init` in a tmpdir) if missing.
+- Writes `~/.co/agent.json` with the signing address, alias, bio, and skill metadata. **Skips** profile creation if a profile already exists unless you pass `--force` (which backs up to `agent.json.bak`).
+- Runs `co skills discover && co skills copy --all && co skills manifest` to populate the library and merge skill metadata into `agent.json`. Idempotent — existing skills are not overwritten without `--force`. New skill entries default to `publish: false`.
+- Reports identity, auth status, and library counts.
 
-This is the **single source of truth** for the bundle. Identity fields come
-from the user's connectonion keypair. `skills` is empty until `oo-publish`
-walks `skills/` and fills it. No signature yet — `oo-publish` adds it.
+If `~/.co/agent.json` already exists with a different alias/bio, surface
+the conflict to the user before passing `--force` — don't clobber silently.
 
-```python
-python -c "
-from connectonion import address
-from pathlib import Path
-import json
-keys = address.load(Path.home() / '.co')
-profile = {
-    'address': keys['address'],
-    'alias': '<bundle-name>',
-    'name': '<bundle-name>',
-    'bio': 'One-line description of your agent. Edit me.',
-    'skills': [],
-    'version': 'v0.1.0',
-}
-Path('agent.json').write_text(json.dumps(profile, indent=2))
-print('wrote agent.json for', keys['address'])
-"
-```
+If they're scripting (e.g. a clean test setup), `--no-skills` skips the
+library refresh.
 
-After running, ask the user to edit `bio` (and optionally `name`) before
-publishing. A vague bio is the most common reason a bundle gets ignored.
+## Phase C — Point at next steps
 
-## Phase D — Write supporting files
-
-**`.claude-plugin/plugin.json`** — Claude Code namespace manifest:
-```json
-{
-  "name": "<bundle-name>",
-  "version": "0.1.0",
-  "description": "Agent bundle published via agent.openonion.ai"
-}
-```
-
-**`.gitignore`**:
-```
-.DS_Store
-node_modules/
-__pycache__/
-```
-
-**`README.md`** — short skeleton (the user expands later):
-```
-# <bundle-name>
-
-<one-line bio matching agent.json>
-
-## Skills
-
-(populated by oo-publish from skills/ directory)
-```
-
-## Phase E — Tell the user what's next
-
-Print:
+The CLI prints a summary. Add the publishing hint if not obvious:
 
 ```
-✓ Bundle scaffolded at ./<name>/
+✓ Setup complete. Your identity is at ~/.co/agent.json.
 
-Next steps:
-  1. Edit agent.json — fix the bio.
-  2. Drop your skills into skills/<skill-name>/SKILL.md
-     (and optionally commands/<name>.md, agents/<name>.md).
-  3. Run the oo-publish skill — it signs agent.json and announces
-     your bundle over the relay so others can subscribe.
+Next:
+  • Browse your library:       co skills list
+  • Edit bio if needed:        $EDITOR ~/.co/agent.json
+  • Publish:                   run the oo-publish skill
 ```
 
 ## Anti-patterns
 
-- **Don't curate `~/.claude/` here.** Curation belongs in `oo-publish`'s
-  Phase C — keeping the two skills sharply separated lets the user iterate
-  on bundle contents without re-scaffolding.
+- **Don't `mkdir` a separate bundle directory.** There is no bundle dir. Everything lives in `~/.co/`. The "bundle" abstraction was deleted on purpose.
+- **Don't reimplement `co setup` in bash.** If you find yourself writing `mkdir`, `cat > agent.json`, `cp ~/.claude/skills/...`, or `python -c "from connectonion import address"` blocks, stop. The logic lives in `connectonion/cli/commands/setup_commands.py` and is the single source of truth.
+- **Don't curate which skills get published here.** `co setup` copies *every* discoverable skill into the user's library. Picking which ones go into the announced profile is `oo-publish`'s job.
 - **Don't sign `agent.json` here.** Signature is a publish-time concern.
-  Signing an empty `skills` array would just mean re-signing later.
-- **Don't run `git init`.** The bundle ships over the relay, not via git.
-  The user can add a repo if they want, but it's not a publish dependency.
+- **Don't pass `--force` without telling the user.** A backup is made, but a noisy confirmation prevents accidental loss.
