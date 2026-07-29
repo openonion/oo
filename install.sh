@@ -37,6 +37,10 @@ if [ ! -x "$CO_PY" ]; then
   case "$uname_s" in
     Darwin) TRIPLE="$ARCH-apple-darwin" ;;
     Linux)  TRIPLE="$ARCH-unknown-linux-gnu" ;;
+    MINGW*|MSYS*|CYGWIN*)
+      red "Windows detected (Git Bash/MSYS). Use the PowerShell installer instead:"
+      red '  irm https://raw.githubusercontent.com/openonion/oo/main/install.ps1 | iex'
+      exit 1 ;;
     *) red "unsupported platform: $uname_s/$uname_m"; exit 1 ;;
   esac
   ASSET="cpython-${PBS_PYTHON}+${PBS_RELEASE}-${TRIPLE}-install_only.tar.gz"

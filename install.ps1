@@ -48,7 +48,10 @@ if (-not (Test-Path $CoPy)) {
   $tarball = Join-Path $CoEnv $asset
   Invoke-WebRequest -Uri $url -OutFile $tarball -UseBasicParsing
   # tarball contains a top-level "python\" directory.
-  tar -xzf $tarball -C $CoEnv
+  # GNU tar from Git Bash on PATH parses the "C:" as a remote host; pin to Windows' bsdtar.
+  $tarExe = Join-Path $env:SystemRoot 'System32\tar.exe'
+  if (-not (Test-Path $tarExe)) { $tarExe = 'tar' }
+  & $tarExe -xzf $tarball -C $CoEnv
   Remove-Item -Force $tarball
   if (-not (Test-Path $CoPy)) { Write-Fail "python bootstrap failed: $CoPy not found after extract" }
 }
