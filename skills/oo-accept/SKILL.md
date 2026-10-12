@@ -1,6 +1,6 @@
 ---
 name: oo-accept
-description: Use when the user wants to review or accept incoming subscription requests for their published bundle. Triggers on phrases like "accept subscribers", "who's trying to follow me", "review subscription requests", "approve oo subscriptions".
+description: Use when the user wants to review or accept incoming subscription requests for their published bundle. Triggers on phrases like "accept subscribers", "who's trying to follow me", "review subscription requests", "approve oo subscriptions". Not for `co handoff` codes or handoff prompts; for those, run the `co handoff accept` command the prompt gives.
 allowed-tools: Bash, Read, Write
 ---
 
